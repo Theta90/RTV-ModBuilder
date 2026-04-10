@@ -128,26 +128,10 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
     // Replace any placeholders in the mod.txt file with the actual values from package.json,
     //  and write to a temp file that will be included in the zip.
     private async createTempModTxt() {
-      let txtFile = `[mod]
-      name="${this.GetModName(undefined, false)}"
-      id="${this.ModId}"
-      version="${this.#packageInfo.version}"
-      `;
-
-      /* let content = await fs.promises.readFile(
-        this.#modTxtOptions.path,
-        "utf-8",
-      );
-
-      const txtFileReplacements = {
-        "{MOD_NAME}": this.GetModName(undefined, false), // exclude version
-        "{MOD_ID}": this.ModId,
-        "{MOD_VERSION}": this.#packageInfo.version,
-      } as const;
-
-      Object.entries(txtFileReplacements).forEach(([placeholder, value]) => {
-        content = content.replaceAll(placeholder, value);
-      }); */
+      let txtFile = "[mod]";
+      txtFile += `\nname="${this.GetModName(undefined, false)}"`;
+      txtFile += `\nid="${this.ModId}"`;
+      txtFile += `\nversion="${this.#packageInfo.version}"`;
 
       // add in the autoloads section if there are any autoloads specified in the options
       if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
@@ -155,14 +139,14 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
         Object.entries(this.#modTxtOptions.autoloads).forEach(
           ([autoloadName, autoloadPath]) => {
-            let fixedPath = `res://mods/${this.GetModName()}/`;
+            let fixedPath = `res://`;
 
             if (!autoloadPath.startsWith(fixedPath)) fixedPath += autoloadPath;
             else fixedPath = autoloadPath;
 
             if (!fixedPath.endsWith(".gd")) fixedPath += ".gd";
 
-            autoloadEntries += `${autoloadName}=\"${fixedPath}\"\n`;
+            autoloadEntries += `\n${autoloadName}=\"${fixedPath}\"`;
           },
         );
 
