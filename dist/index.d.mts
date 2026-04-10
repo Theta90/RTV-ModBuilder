@@ -45,6 +45,10 @@ export interface BuildOptions {
      * Optional callbacks for build events
      */
     callbacks?: BuildOptionsCallbacks;
+    /**
+     * If true, the builder will log additional information about the build process to the console. Defaults to false.
+     */
+    verbose?: boolean;
 }
 type ArchiverGlob = {
     pattern: string;

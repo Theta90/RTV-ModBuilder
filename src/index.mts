@@ -41,6 +41,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         onBuildStart: [],
         onError: [],
       },
+      verbose: false,
     };
 
     get #TempPath(): string {
@@ -99,6 +100,16 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
           ...builderArgs.options?.callbacks,
         },
       };
+
+      if (this.#options.verbose) {
+        console.log("ModBuilder initialized with the following configuration:");
+        console.log("Package Info:", this.#packageInfo);
+        console.log("Project Root:", this.#projectRoot);
+        console.log("Output Directory:", this.#outDir);
+        console.log("Archiver Globs:", this.#archiverGlobs);
+        console.log("mod.txt Options:", this.#modTxtOptions);
+        console.log("Build Options:", this.#options);
+      }
     }
 
     private GetModName(
@@ -124,6 +135,9 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
     // Creates a directory if it doesn't exist.
     private async ensureDir(dir: string) {
+      if (this.#options.verbose) {
+        console.log(`Ensuring directory exists: ${dir}`);
+      }
       await fs.promises.mkdir(dir, {
         recursive: true,
       });
@@ -136,6 +150,11 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       txtFile += `\nname="${this.GetModName(undefined, false)}"`;
       txtFile += `\nid="${this.ModId}"`;
       txtFile += `\nversion="${this.#packageInfo.version}"`;
+
+      if (this.#options.verbose) {
+        console.log("Initializing mod.txt with:");
+        console.log(txtFile);
+      }
 
       // add in the autoloads section if there are any autoloads specified in the options
       if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
@@ -154,15 +173,31 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
           },
         );
 
+        if (this.#options.verbose) {
+          console.log("Adding autoloads to mod.txt:");
+          console.log(autoloadEntries);
+        }
+
         txtFile += autoloadEntries;
       }
 
       if (this.#modTxtOptions.modworkshopID) {
-        txtFile += `\n\n[updates]`;
-        txtFile += `\nmodworkshop=${this.#modTxtOptions.modworkshopID}`;
+        let updatesSection = `\n\n[updates]`;
+        updatesSection += `\nmodworkshop=${this.#modTxtOptions.modworkshopID}`;
+
+        if (this.#options.verbose) {
+          console.log("Adding updates section to mod.txt:");
+          console.log(updatesSection);
+        }
+
+        txtFile += updatesSection;
       }
 
       await this.ensureDir(this.#TempPath);
+
+      if (this.#options.verbose) {
+        console.log(`Writing mod.txt to temporary path: ${this.#TempPath}`);
+      }
 
       await fs.promises.writeFile(
         path.join(this.#TempPath, "mod.txt"),
@@ -176,6 +211,10 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         const zipPath = this.GetBuildPath("zip");
         const output = fs.createWriteStream(zipPath);
         const archive = archiver("zip", { zlib: { level: 9 } });
+
+        if (this.#options.verbose) {
+          console.log(`Creating zip archive: ${zipPath}`);
+        }
 
         output.on("close", () => resolve(void 0));
         output.on("error", reject);
@@ -196,6 +235,13 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         ];
 
         if (this.#archiverGlobs.length === 0) {
+          if (this.#options.verbose) {
+            console.log(
+              "No custom globs provided, including all files in project root except excluded globs:",
+            );
+            console.log(excludedGlobs);
+          }
+
           archive.glob(
             "**/*",
             {
@@ -205,6 +251,10 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
             //{ prefix: "src" },
           );
         } else {
+          if (this.#options.verbose) {
+            console.log(`Using ${this.#archiverGlobs.length} custom globs:`);
+            console.log(this.#archiverGlobs);
+          }
           // if globs are provided, use those instead of globbing the entire directory
           for (const glob of this.#archiverGlobs) {
             const options = glob.options ?? {};
@@ -218,11 +268,27 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
             options.ignore.push(...excludedGlobs); // ignore build output and temp dir
 
+            if (this.#options.verbose) {
+              console.log(
+                `Adding glob pattern: ${glob.pattern} with options:`,
+                options,
+              );
+            }
+
             archive.glob(glob.pattern, options, glob.data);
           }
         }
 
+        if (this.#options.verbose) {
+          console.log("Finalizing archive...");
+        }
+
         await archive.finalize();
+
+        if (this.#options.verbose) {
+          console.log("Archive finalized, zip file created.");
+          console.log("Removing temporary directory...");
+        }
 
         // remove temp dir
         await fs.promises
@@ -242,6 +308,11 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
     }
 
     public async build() {
+      if (this.#options.verbose) {
+        console.log("Starting mod build process...");
+        console.log("Calling onBuildStart callbacks...");
+      }
+
       for (const callback of this.#options.callbacks.onBuildStart ?? []) {
         try {
           callback();
@@ -254,17 +325,33 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         const zipPath = this.GetBuildPath("zip");
         const finalPath = this.GetBuildPath("vmz");
 
+        if (this.#options.verbose) {
+          console.log(`Build paths:`);
+          console.log(`Zip Path: ${zipPath}`);
+          console.log(`Final Path: ${finalPath}`);
+        }
+
         await this.ensureDir(this.#BuildDir);
+
+        if (this.#options.verbose) {
+          console.log("Removing all old build files...");
+        }
 
         // remove old zip and final files if they exist
         if (fs.existsSync(zipPath)) await fs.promises.unlink(zipPath);
         if (fs.existsSync(finalPath)) await fs.promises.unlink(finalPath);
 
+        if (this.#options.verbose) {
+          console.log("Creating mod.txt and zipping directory...");
+        }
+
         await this.createTempModTxt();
         await this.zipDirectory();
         await fs.promises.rename(zipPath, finalPath);
 
-        console.log(`Built mod: ${finalPath}`);
+        if (this.#options.verbose) {
+          console.log(`Built mod: ${finalPath}`);
+        }
       } catch (error) {
         for (const callback of this.#options.callbacks.onError ?? []) {
           try {
@@ -275,6 +362,9 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         }
         throw error;
       } finally {
+        if (this.#options.verbose) {
+          console.log("Calling onBuildEnd callbacks...");
+        }
         for (const callback of this.#options.callbacks.onBuildEnd ?? []) {
           try {
             callback();
@@ -342,6 +432,11 @@ export interface BuildOptions {
    * Optional callbacks for build events
    */
   callbacks?: BuildOptionsCallbacks;
+
+  /**
+   * If true, the builder will log additional information about the build process to the console. Defaults to false.
+   */
+  verbose?: boolean;
 }
 
 // sourced from archiver's params since they don't export their glob type
