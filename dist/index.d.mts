@@ -35,6 +35,11 @@ export interface ModPackageInfo {
      */
     version: string;
 }
+export interface BuildOptionsCallbacks {
+    onBuildStart?: (() => void)[];
+    onBuildEnd?: (() => void)[];
+    onError?: ((error: Error) => void)[];
+}
 export interface BuildOptions {
     /**
      * If true, the version from the packageInfo will be included in the zip and final file names (e.g. "MyMod-1.0.0.zip").
@@ -42,7 +47,16 @@ export interface BuildOptions {
      * Defaults to true.
      */
     includeVersionInName?: boolean;
+    /**
+     * Optional callbacks for build events
+     */
+    callbacks?: BuildOptionsCallbacks;
 }
+type ArchiverGlob = {
+    pattern: string;
+    options?: Parameters<Archiver["glob"]>[1];
+    data?: Parameters<Archiver["glob"]>[2];
+};
 export interface ModBuilderArgs {
     /**
      * The mod package information, can be specified here to override the values from package.json.
@@ -68,14 +82,11 @@ export interface ModBuilderArgs {
      * Optional array of glob patterns to specify which files to include in the zip.
      * If not provided, all files in the project root will be included (except those ignored by default).
      */
-    globs?: {
-        pattern: string;
-        options?: Parameters<Archiver["glob"]>[1];
-        data?: Parameters<Archiver["glob"]>[2];
-    }[];
+    globs?: ArchiverGlob[];
     /**
      * Additional build options. See {@linkcode BuildOptions}.
      */
     options?: BuildOptions;
 }
+export {};
 //# sourceMappingURL=index.d.mts.map

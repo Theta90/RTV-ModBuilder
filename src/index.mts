@@ -26,6 +26,8 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       version: "0.0.1",
     };
 
+    readonly #callbacks: BuildOptionsCallbacks = {};
+
     readonly #projectRoot: string = "";
 
     readonly #outDir: string = "";
@@ -36,6 +38,11 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
     readonly #options: DeepRequired<BuildOptions> = {
       includeVersionInName: true,
+      callbacks: {
+        onBuildEnd: [],
+        onBuildStart: [],
+        onError: [],
+      },
     };
 
     get #TempPath(): string {
@@ -82,6 +89,10 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       this.#options = {
         ...this.#options,
         ...builderArgs.options,
+        callbacks: {
+          ...this.#options.callbacks,
+          ...builderArgs.options?.callbacks,
+        },
       };
     }
 
@@ -208,20 +219,31 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
     }
 
     public async build() {
-      const zipPath = this.GetBuildPath("zip");
-      const finalPath = this.GetBuildPath("vmz");
+      this.#callbacks.onBuildStart?.forEach((callback) => callback());
 
-      await this.ensureDir(this.#BuildDir);
+      try {
+        const zipPath = this.GetBuildPath("zip");
+        const finalPath = this.GetBuildPath("vmz");
 
-      // remove old zip and final files if they exist
-      if (fs.existsSync(zipPath)) await fs.promises.unlink(zipPath);
-      if (fs.existsSync(finalPath)) await fs.promises.unlink(finalPath);
+        await this.ensureDir(this.#BuildDir);
 
-      await this.createTempModTxt();
-      await this.zipDirectory();
-      await fs.promises.rename(zipPath, finalPath);
+        // remove old zip and final files if they exist
+        if (fs.existsSync(zipPath)) await fs.promises.unlink(zipPath);
+        if (fs.existsSync(finalPath)) await fs.promises.unlink(finalPath);
 
-      console.log(`Built mod: ${finalPath}`);
+        await this.createTempModTxt();
+        await this.zipDirectory();
+        await fs.promises.rename(zipPath, finalPath);
+
+        console.log(`Built mod: ${finalPath}`);
+      } catch (error) {
+        this.#callbacks.onError?.forEach((callback) =>
+          callback(error as Error),
+        );
+        throw error;
+      } finally {
+        this.#callbacks.onBuildEnd?.forEach((callback) => callback());
+      }
     }
   }
 
@@ -263,6 +285,12 @@ export interface ModPackageInfo {
   version: string;
 }
 
+export interface BuildOptionsCallbacks {
+  onBuildStart?: (() => void)[];
+  onBuildEnd?: (() => void)[];
+  onError?: ((error: Error) => void)[];
+}
+
 export interface BuildOptions {
   /**
    * If true, the version from the packageInfo will be included in the zip and final file names (e.g. "MyMod-1.0.0.zip").
@@ -270,7 +298,19 @@ export interface BuildOptions {
    * Defaults to true.
    */
   includeVersionInName?: boolean;
+
+  /**
+   * Optional callbacks for build events
+   */
+  callbacks?: BuildOptionsCallbacks;
 }
+
+// sourced from archiver's params since they don't export their glob type
+type ArchiverGlob = {
+  pattern: string;
+  options?: Parameters<Archiver["glob"]>[1];
+  data?: Parameters<Archiver["glob"]>[2];
+};
 
 export interface ModBuilderArgs {
   /**
@@ -301,11 +341,7 @@ export interface ModBuilderArgs {
    * Optional array of glob patterns to specify which files to include in the zip.
    * If not provided, all files in the project root will be included (except those ignored by default).
    */
-  globs?: {
-    pattern: string;
-    options?: Parameters<Archiver["glob"]>[1];
-    data?: Parameters<Archiver["glob"]>[2];
-  }[];
+  globs?: ArchiverGlob[];
 
   /**
    * Additional build options. See {@linkcode BuildOptions}.

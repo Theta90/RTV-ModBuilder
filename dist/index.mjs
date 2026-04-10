@@ -22,12 +22,18 @@ export default async function modBuilder(builderArgs) {
             name: "unnamed-mod",
             version: "0.0.1",
         };
+        #callbacks = {};
         #projectRoot = "";
         #outDir = "";
         #modTxtPath = "";
         #archiverGlobs = [];
         #options = {
             includeVersionInName: true,
+            callbacks: {
+                onBuildEnd: [],
+                onBuildStart: [],
+                onError: [],
+            },
         };
         get #TempPath() {
             return path.join(this.#projectRoot, this.#TEMP_SUB_DIR);
@@ -61,6 +67,10 @@ export default async function modBuilder(builderArgs) {
             this.#options = {
                 ...this.#options,
                 ...builderArgs.options,
+                callbacks: {
+                    ...this.#options.callbacks,
+                    ...builderArgs.options?.callbacks,
+                },
             };
         }
         GetModName(extension = undefined, includeVersion = this.#options.includeVersionInName) {
@@ -146,18 +156,28 @@ export default async function modBuilder(builderArgs) {
             });
         }
         async build() {
-            const zipPath = this.GetBuildPath("zip");
-            const finalPath = this.GetBuildPath("vmz");
-            await this.ensureDir(this.#BuildDir);
-            // remove old zip and final files if they exist
-            if (fs.existsSync(zipPath))
-                await fs.promises.unlink(zipPath);
-            if (fs.existsSync(finalPath))
-                await fs.promises.unlink(finalPath);
-            await this.createTempModTxt();
-            await this.zipDirectory();
-            await fs.promises.rename(zipPath, finalPath);
-            console.log(`Built mod: ${finalPath}`);
+            this.#callbacks.onBuildStart?.forEach((callback) => callback());
+            try {
+                const zipPath = this.GetBuildPath("zip");
+                const finalPath = this.GetBuildPath("vmz");
+                await this.ensureDir(this.#BuildDir);
+                // remove old zip and final files if they exist
+                if (fs.existsSync(zipPath))
+                    await fs.promises.unlink(zipPath);
+                if (fs.existsSync(finalPath))
+                    await fs.promises.unlink(finalPath);
+                await this.createTempModTxt();
+                await this.zipDirectory();
+                await fs.promises.rename(zipPath, finalPath);
+                console.log(`Built mod: ${finalPath}`);
+            }
+            catch (error) {
+                this.#callbacks.onError?.forEach((callback) => callback(error));
+                throw error;
+            }
+            finally {
+                this.#callbacks.onBuildEnd?.forEach((callback) => callback());
+            }
         }
     }
     return await new ModBuilder().build();
