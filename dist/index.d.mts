@@ -14,8 +14,8 @@ export declare class InvalidPathError extends ModBuildError {
 export interface ModPackageInfo {
     /**
      * The mod's unique identifier.
-     * Recommended to only use a-z, - and _ chars, preferabally also prefixing with your name
-     *  or initials to avoid conflicts with other mods.
+     * Recommended to only use a-z, - and _ chars, preferably also prefixing with your name
+     * or initials to avoid conflicts with other mods.
      */
     id: string;
     /**
@@ -25,24 +25,27 @@ export interface ModPackageInfo {
     name: string;
     /**
      * The mod's version. This is what will be shown in the mod manager, and can optionally be included
-     *  in the zip and final file names.
+     * in the output file names (e.g. "MyMod_v1.0.0.vmz").
      */
     version: string;
 }
 export interface BuildOptionsCallbacks {
+    /** Called before the build process starts. */
     onBuildStart?: (() => void)[];
+    /** Called after the build process completes successfully. */
     onBuildEnd?: (() => void)[];
+    /** Called when an error occurs during the build process. */
     onError?: ((error: Error) => void)[];
 }
 export interface BuildOptions {
     /**
-     * If true, the version from the packageInfo will be included in the zip and final file names (e.g. "MyMod-1.0.0.zip").
+     * If true, the version from the packageInfo will be included in the output file names (e.g. "MyMod_v1.0.0.vmz").
      * Note that if the version is missing, this will insert version "0.0.1" into the name.
      * Defaults to true.
      */
     includeVersionInName?: boolean;
     /**
-     * Optional callbacks for build events
+     * Optional callbacks for build events. See {@linkcode BuildOptionsCallbacks}.
      */
     callbacks?: BuildOptionsCallbacks;
     /**
@@ -57,53 +60,54 @@ type ArchiverGlob = {
 };
 export interface ModTxtOptions {
     /**
-     * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
-     * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
-     */
-    path?: string;
-    /**
-     * Optional array of autoload entries to include in the mod.txt file.
-     * Each entry should be an obj with the name of the autoload as the key, and the path to the
-     *  script as the value (relative to the project root) -- i.e. { "MyMod": "relative/path/to/Main" }.
-     * This maps to "MyMod="res://relative/path/to/Main.gd"" in the [autoloads] section of mod.txt.
+     * Optional autoload entries to include in the mod.txt file.
+     * Each entry should be an object with the name of the autoload as the key, and the path to the
+     * script as the value (relative to the mod folder) -- i.e. { "MyMod": "relative/path/to/Main" }.
+     * This maps to `MyMod="res://mods/ModName/relative/path/to/Main.gd"` in the [autoload] section of mod.txt.
      * The ".gd" extension will be added automatically if not included in the path.
      */
     autoload?: Record<string, string>;
     /**
      * The ID of the mod on ModWorkshop, used for the [updates] section of mod.txt.
      * If not provided, no [updates] section will be included in mod.txt.
-     * "It is included in the URL of the mod page, e.g. 49779 for modworkshop.net/mod/49779"
+     * It is included in the URL of the mod page, e.g. 49779 for modworkshop.net/mod/49779.
      */
     modworkshopID?: string | undefined;
     /**
      * Optional author name to include in the mod.txt file.
      */
     author?: string | undefined;
+    /**
+     * This determines the load order of mods, with lower values loading first.
+     * If not provided, no priority will be included in mod.txt.
+     */
+    priority?: number | undefined;
 }
 export interface ModBuilderArgs {
     /**
-     * The mod package information, can be specified here to override the values from package.json.
-     * If not specified, will use the values from package.json.
+     * The mod package information, including id, name, and version.
+     * See {@linkcode ModPackageInfo}.
      */
     packageInfo: ModPackageInfo;
     /**
-     * The root directory of the project. This is used to resolve relative paths for sourceDir, buildDir, and tempDir.
+     * The root directory of the project. This is used as the base for resolving relative paths
+     * and as the source directory when globbing files to include in the zip.
      */
     projectRoot: string;
     /**
-     * The directory where the zip file will be created.
-     * Defaults to "./build" in the project root.
+     * The directory where the final .vmz file will be created, relative to the project root.
+     * Defaults to "build".
      * Will create this directory if it doesn't exist.
      */
     outDir?: string;
     /**
      * Optional array of glob patterns to specify which files to include in the zip.
-     * If not provided, all files in the project root will be included (except those ignored by default).
+     * If not provided, all files in the project root will be included (except build output, temp dir, and mod.txt).
      */
     globs?: ArchiverGlob[];
     /**
-     * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
-     * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
+     * Options for generating the mod.txt file. See {@linkcode ModTxtOptions}.
+     * If not provided, a minimal mod.txt will be generated using values from packageInfo.
      */
     modTxtOptions?: ModTxtOptions;
     /**

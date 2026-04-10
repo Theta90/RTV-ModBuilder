@@ -32,6 +32,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       autoload: {},
       author: undefined,
       modworkshopID: undefined,
+      priority: undefined,
     };
 
     readonly #options: DeepRequired<BuildOptions> = {
@@ -76,6 +77,8 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
           builderArgs.modTxtOptions?.modworkshopID ??
           this.#modTxtOptions.modworkshopID,
         author: builderArgs.modTxtOptions?.author ?? this.#modTxtOptions.author,
+        priority:
+          builderArgs.modTxtOptions?.priority ?? this.#modTxtOptions.priority,
       };
 
       this.#archiverGlobs = builderArgs.globs ?? [];
@@ -157,6 +160,9 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
       if (this.#modTxtOptions.author)
         txtFile += `\nauthor="${this.#modTxtOptions.author}"`;
+
+      if (this.#modTxtOptions.priority !== undefined)
+        txtFile += `\npriority="${this.#modTxtOptions.priority}"`;
 
       // add in the autoloads section if there are any autoloads specified in the options
       if (Object.keys(this.#modTxtOptions.autoload).length > 0) {
@@ -478,6 +484,12 @@ export interface ModTxtOptions {
    * Optional author name to include in the mod.txt file.
    */
   author?: string | undefined;
+
+  /**
+   * This determines the load order of mods, with lower values loading first.
+   * If not provided, no priority will be included in mod.txt.
+   */
+  priority?: number | undefined;
 }
 
 export interface ModBuilderArgs {

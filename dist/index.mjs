@@ -21,10 +21,10 @@ export default async function modBuilder(builderArgs) {
         #outDir = "";
         #archiverGlobs = [];
         #modTxtOptions = {
-            path: "mod.txt",
             autoload: {},
             author: undefined,
             modworkshopID: undefined,
+            priority: undefined,
         };
         #options = {
             includeVersionInName: true,
@@ -52,11 +52,11 @@ export default async function modBuilder(builderArgs) {
             this.#projectRoot = builderArgs.projectRoot;
             this.#outDir = builderArgs.outDir ?? "build";
             this.#modTxtOptions = {
-                path: builderArgs.modTxtOptions?.path ?? "mod.txt",
                 autoload: builderArgs.modTxtOptions?.autoload ?? this.#modTxtOptions.autoload,
                 modworkshopID: builderArgs.modTxtOptions?.modworkshopID ??
                     this.#modTxtOptions.modworkshopID,
                 author: builderArgs.modTxtOptions?.author ?? this.#modTxtOptions.author,
+                priority: builderArgs.modTxtOptions?.priority ?? this.#modTxtOptions.priority,
             };
             this.#archiverGlobs = builderArgs.globs ?? [];
             if (!isValidPath(this.#projectRoot)) {
@@ -118,6 +118,8 @@ export default async function modBuilder(builderArgs) {
             txtFile += `\nversion="${this.#packageInfo.version}"`;
             if (this.#modTxtOptions.author)
                 txtFile += `\nauthor="${this.#modTxtOptions.author}"`;
+            if (this.#modTxtOptions.priority !== undefined)
+                txtFile += `\npriority="${this.#modTxtOptions.priority}"`;
             // add in the autoloads section if there are any autoloads specified in the options
             if (Object.keys(this.#modTxtOptions.autoload).length > 0) {
                 let autoloadEntries = "\n\n[autoload]";
