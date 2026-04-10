@@ -135,7 +135,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
       // add in the autoloads section if there are any autoloads specified in the options
       if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
-        let autoloadEntries = "\n[autoloads]\n";
+        let autoloadEntries = "\n\n[autoloads]";
 
         Object.entries(this.#modTxtOptions.autoloads).forEach(
           ([autoloadName, autoloadPath]) => {
