@@ -23,6 +23,7 @@ export default async function modBuilder(builderArgs) {
         #modTxtOptions = {
             path: "mod.txt",
             autoload: {},
+            author: undefined,
             modworkshopID: undefined,
         };
         #options = {
@@ -55,6 +56,7 @@ export default async function modBuilder(builderArgs) {
                 autoload: builderArgs.modTxtOptions?.autoload ?? this.#modTxtOptions.autoload,
                 modworkshopID: builderArgs.modTxtOptions?.modworkshopID ??
                     this.#modTxtOptions.modworkshopID,
+                author: builderArgs.modTxtOptions?.author ?? this.#modTxtOptions.author,
             };
             this.#archiverGlobs = builderArgs.globs ?? [];
             if (!isValidPath(this.#projectRoot)) {
@@ -114,6 +116,8 @@ export default async function modBuilder(builderArgs) {
             txtFile += `\nname="${this.GetModName(undefined, false)}"`;
             txtFile += `\nid="${this.ModId}"`;
             txtFile += `\nversion="${this.#packageInfo.version}"`;
+            if (this.#modTxtOptions.author)
+                txtFile += `\nauthor="${this.#modTxtOptions.author}"`;
             // add in the autoloads section if there are any autoloads specified in the options
             if (Object.keys(this.#modTxtOptions.autoload).length > 0) {
                 let autoloadEntries = "\n\n[autoload]";

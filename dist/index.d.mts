@@ -75,6 +75,10 @@ export interface ModTxtOptions {
      * "It is included in the URL of the mod page, e.g. 49779 for modworkshop.net/mod/49779"
      */
     modworkshopID?: string | undefined;
+    /**
+     * Optional author name to include in the mod.txt file.
+     */
+    author?: string | undefined;
 }
 export interface ModBuilderArgs {
     /**
