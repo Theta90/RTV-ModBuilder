@@ -17,8 +17,7 @@ npm i -D "github:Theta90/RTV-ModBuilder#main"
 
 ## Usage
 
-See [The example project](https://github.com/Theta90/RTV-ModBuilder-Example).
-Most of the detailing is there... it'll be here eventually too :)
+For an actual example, see [the example project](https://github.com/Theta90/RTV-ModBuilder-Example).
 
 In your mod project, create an entry file (e.g. `index.js`) and call the `modBuilder`
 function imported from this tool.
