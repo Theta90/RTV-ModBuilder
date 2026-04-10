@@ -209,7 +209,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       const zipPath = this.GetBuildPath("zip");
       const finalPath = this.GetBuildPath("vmz");
 
-      await this.ensureDir(this.#outDir);
+      await this.ensureDir(this.#BuildDir);
 
       // remove old zip and final files if they exist
       if (fs.existsSync(zipPath)) await fs.promises.unlink(zipPath);
