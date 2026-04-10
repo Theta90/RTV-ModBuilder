@@ -151,7 +151,7 @@ export default async function modBuilder(builderArgs) {
         async zipDirectory() {
             return await new Promise(async (resolve, reject) => {
                 const zipPath = this.GetBuildPath("zip");
-                const pathPrefix = `${this.GetModName()}/`;
+                const pathPrefix = `${this.GetModName(undefined, false)}/`;
                 const output = fs.createWriteStream(zipPath);
                 const archive = archiver("zip", { zlib: { level: 9 } });
                 if (this.#options.verbose) {
