@@ -1,0 +1,28 @@
+{
+  "name": "rtv-modbuilder",
+  "displayName": "Theta's RTV ModBuilder",
+  "version": "0.0.1",
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Theta",
+      "email": "theta90.contact@gmail.com"
+    }
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/archiver": "^7.0.0",
+    "@types/is-valid-path": "^0.1.2",
+    "@types/node": "^25.5.2",
+    "archiver": "^7.0.1",
+    "is-valid-path": "^0.1.1"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}

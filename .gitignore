@@ -1,0 +1,8 @@
+.vscode
+.env
+.npm
+
+.DS_Store
+Thumbs.db
+
+node_modules

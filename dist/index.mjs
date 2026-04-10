@@ -1,0 +1,171 @@
+import * as fs from "fs";
+import path from "path";
+import archiver, {} from "archiver";
+import isValidPath from "is-valid-path";
+//#region ModBuilder
+/**
+ * Builds a mod by zipping the contents of the source directory, replacing placeholders in mod.txt with values from packageInfo,
+ *  and outputting the final .vmz file to the build directory.
+ *
+ * The mod.txt file is required in the source directory, and should contain placeholders for {MOD_NAME}, {MOD_ID}, and {MOD_VERSION}.
+ * If BuildOptions.includeFiles is provided, those files will be included in the zip at the root level (not inside the "src" folder).
+ *
+ * See the ./example folder for more info.
+ * @param buildOptions
+ * @returns
+ */
+export default async function modBuilder(builderArgs) {
+    class ModBuilder {
+        #TEMP_SUB_DIR = "__temp_mod_build";
+        #packageInfo = {
+            id: "unnamed-mod",
+            name: "unnamed-mod",
+            version: "0.0.1",
+        };
+        #projectRoot = "";
+        #outDir = "build";
+        #archiverGlobs = [];
+        #options = {
+            includeVersionInName: true,
+        };
+        get #TempPath() {
+            return path.join(this.#projectRoot, this.#TEMP_SUB_DIR);
+        }
+        get #BuildDir() {
+            return path.join(this.#projectRoot, this.#outDir);
+        }
+        get ModId() {
+            return this.#packageInfo.id;
+        }
+        constructor() {
+            if (builderArgs.packageInfo?.id == "")
+                throw new InvalidBuildOptionsError("packageInfo.id cannot be an empty string");
+            if (builderArgs.packageInfo?.name == "")
+                throw new InvalidBuildOptionsError("packageInfo.name cannot be an empty string");
+            this.#projectRoot = builderArgs.projectRoot;
+            this.#outDir = builderArgs.outDir ?? "build";
+            this.#archiverGlobs = builderArgs.globs ?? [];
+            if (!isValidPath(this.#projectRoot)) {
+                throw new InvalidPathError("projectRoot is not a valid path");
+            }
+            if (!isValidPath(this.#outDir)) {
+                throw new InvalidPathError("outDir is not a valid path");
+            }
+            this.#packageInfo = {
+                ...this.#packageInfo,
+                ...builderArgs.packageInfo,
+            };
+            this.#options = {
+                ...this.#options,
+                ...builderArgs.options,
+            };
+        }
+        GetModName(extension = undefined, includeVersion = this.#options.includeVersionInName) {
+            const versionSuffix = includeVersion
+                ? `_v${this.#packageInfo.version}`
+                : "";
+            const extensionSuffix = extension ? `.${extension}` : "";
+            return `${this.#packageInfo.name}${versionSuffix}${extensionSuffix}`;
+        }
+        GetBuildPath(extension, includeVersion = this.#options.includeVersionInName) {
+            return path.join(this.#BuildDir, this.GetModName(extension, includeVersion));
+        }
+        // Creates a directory if it doesn't exist.
+        async ensureDir(dir) {
+            await fs.promises.mkdir(dir, {
+                recursive: true,
+            });
+        }
+        // Replace any placeholders in the mod.txt file with the actual values from package.json,
+        //  and write to a temp file that will be included in the zip.
+        async createTempModTxt() {
+            const txtFileReplacements = {
+                "{MOD_NAME}": this.GetModName(undefined, false), // exclude version
+                "{MOD_ID}": this.ModId,
+                "{MOD_VERSION}": this.#packageInfo.version,
+            };
+            let content = await fs.promises.readFile(path.join(this.#projectRoot, "mod.txt"), "utf-8");
+            Object.entries(txtFileReplacements).forEach(([placeholder, value]) => {
+                content = content.replaceAll(placeholder, value);
+            });
+            await this.ensureDir(this.#TempPath);
+            await fs.promises.writeFile(path.join(this.#TempPath, "mod.txt"), content, "utf-8");
+        }
+        async zipDirectory() {
+            return await new Promise(async (resolve, reject) => {
+                const zipPath = this.GetBuildPath("zip");
+                const output = fs.createWriteStream(zipPath);
+                const archive = archiver("zip", { zlib: { level: 9 } });
+                output.on("close", () => resolve(void 0));
+                output.on("error", reject);
+                archive.on("error", reject);
+                archive.pipe(output);
+                archive.file(`${this.#TempPath}/mod.txt`, {
+                    name: "mod.txt",
+                    prefix: "",
+                });
+                const excludedGlobs = [
+                    "mod.txt",
+                    `${this.#outDir}/**`,
+                    `${this.#TEMP_SUB_DIR}/**`,
+                ];
+                if (this.#archiverGlobs.length === 0) {
+                    archive.glob("**/*", {
+                        cwd: this.#projectRoot,
+                        ignore: excludedGlobs, // ignore build output and temp dir
+                    });
+                }
+                else {
+                    // if globs are provided, use those instead of globbing the entire directory
+                    for (const glob of this.#archiverGlobs) {
+                        const options = glob.options ?? {};
+                        options.cwd = this.#projectRoot;
+                        // todo: move this out of the loop
+                        options.ignore ??= [];
+                        if (typeof options.ignore === "string")
+                            options.ignore = [options.ignore];
+                        options.ignore.push(...excludedGlobs); // ignore build output and temp dir
+                        archive.glob(glob.pattern, options, glob.data);
+                    }
+                }
+                await archive.finalize();
+                // remove temp dir
+                await fs.promises
+                    .rm(this.#TempPath, {
+                    force: true,
+                    recursive: true,
+                    maxRetries: 3,
+                    retryDelay: 50,
+                })
+                    .catch((err) => {
+                    console.warn(`Failed to delete temp directory: ${this.#TempPath}. Error:`, err);
+                });
+            });
+        }
+        async build() {
+            const zipPath = this.GetBuildPath("zip");
+            const finalPath = this.GetBuildPath("vmz");
+            await this.ensureDir(this.#outDir);
+            // remove old zip and final files if they exist
+            if (fs.existsSync(zipPath))
+                await fs.promises.unlink(zipPath);
+            if (fs.existsSync(finalPath))
+                await fs.promises.unlink(finalPath);
+            await this.createTempModTxt();
+            await this.zipDirectory();
+            await fs.promises.rename(zipPath, finalPath);
+            console.log(`Built mod: ${finalPath}`);
+        }
+    }
+    return await new ModBuilder().build();
+}
+//#endregion ModBuilder
+//#region Errors
+export class ModBuildError extends Error {
+}
+export class InvalidBuildOptionsError extends ModBuildError {
+}
+export class InvalidPathError extends ModBuildError {
+}
+//#endregion Types
+//# sourceMappingURL=index.mjs.map
