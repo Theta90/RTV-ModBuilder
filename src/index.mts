@@ -30,7 +30,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
     readonly #modTxtOptions: DeepRequired<ModTxtOptions> = {
       path: "mod.txt",
-      autoloads: {},
+      autoload: {},
       modworkshopID: undefined,
     };
 
@@ -71,8 +71,8 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
       this.#modTxtOptions = {
         path: builderArgs.modTxtOptions?.path ?? "mod.txt",
-        autoloads:
-          builderArgs.modTxtOptions?.autoloads ?? this.#modTxtOptions.autoloads,
+        autoload:
+          builderArgs.modTxtOptions?.autoload ?? this.#modTxtOptions.autoload,
         modworkshopID:
           builderArgs.modTxtOptions?.modworkshopID ??
           this.#modTxtOptions.modworkshopID,
@@ -156,10 +156,10 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       txtFile += `\nversion="${this.#packageInfo.version}"`;
 
       // add in the autoloads section if there are any autoloads specified in the options
-      if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
-        let autoloadEntries = "\n\n[autoloads]";
+      if (Object.keys(this.#modTxtOptions.autoload).length > 0) {
+        let autoloadEntries = "\n\n[autoload]";
 
-        Object.entries(this.#modTxtOptions.autoloads).forEach(
+        Object.entries(this.#modTxtOptions.autoload).forEach(
           ([autoloadName, autoloadPath]) => {
             let fixedPath = `res://mods/${this.GetModName(undefined, false)}/`;
 
@@ -463,7 +463,7 @@ export interface ModTxtOptions {
    * This maps to "MyMod="res://relative/path/to/Main.gd"" in the [autoloads] section of mod.txt.
    * The ".gd" extension will be added automatically if not included in the path.
    */
-  autoloads?: Record<string, string>;
+  autoload?: Record<string, string>;
 
   /**
    * The ID of the mod on ModWorkshop, used for the [updates] section of mod.txt.

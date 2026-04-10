@@ -68,7 +68,7 @@ export interface ModTxtOptions {
      * This maps to "MyMod="res://relative/path/to/Main.gd"" in the [autoloads] section of mod.txt.
      * The ".gd" extension will be added automatically if not included in the path.
      */
-    autoloads?: Record<string, string>;
+    autoload?: Record<string, string>;
     /**
      * The ID of the mod on ModWorkshop, used for the [updates] section of mod.txt.
      * If not provided, no [updates] section will be included in mod.txt.

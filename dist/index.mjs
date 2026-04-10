@@ -22,7 +22,7 @@ export default async function modBuilder(builderArgs) {
         #archiverGlobs = [];
         #modTxtOptions = {
             path: "mod.txt",
-            autoloads: {},
+            autoload: {},
             modworkshopID: undefined,
         };
         #options = {
@@ -52,7 +52,7 @@ export default async function modBuilder(builderArgs) {
             this.#outDir = builderArgs.outDir ?? "build";
             this.#modTxtOptions = {
                 path: builderArgs.modTxtOptions?.path ?? "mod.txt",
-                autoloads: builderArgs.modTxtOptions?.autoloads ?? this.#modTxtOptions.autoloads,
+                autoload: builderArgs.modTxtOptions?.autoload ?? this.#modTxtOptions.autoload,
                 modworkshopID: builderArgs.modTxtOptions?.modworkshopID ??
                     this.#modTxtOptions.modworkshopID,
             };
@@ -115,9 +115,9 @@ export default async function modBuilder(builderArgs) {
             txtFile += `\nid="${this.ModId}"`;
             txtFile += `\nversion="${this.#packageInfo.version}"`;
             // add in the autoloads section if there are any autoloads specified in the options
-            if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
-                let autoloadEntries = "\n\n[autoloads]";
-                Object.entries(this.#modTxtOptions.autoloads).forEach(([autoloadName, autoloadPath]) => {
+            if (Object.keys(this.#modTxtOptions.autoload).length > 0) {
+                let autoloadEntries = "\n\n[autoload]";
+                Object.entries(this.#modTxtOptions.autoload).forEach(([autoloadName, autoloadPath]) => {
                     let fixedPath = `res://mods/${this.GetModName(undefined, false)}/`;
                     if (!autoloadPath.startsWith(fixedPath))
                         fixedPath += autoloadPath;
