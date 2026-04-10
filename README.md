@@ -20,7 +20,7 @@ npm i -D "github:Theta90/RTV-ModBuilder#main"
 For an actual example, see [the example project](https://github.com/Theta90/RTV-ModBuilder-Example).
 
 In your mod project, create an entry file (e.g. `index.js`) and call the `modBuilder`
-function imported from this tool.
+function imported from this tool. Run this script to generate the bundle.
 The index.js file must be tailored to each specific project. The following options should
 be adjusted per project:
 
