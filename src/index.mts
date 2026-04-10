@@ -31,6 +31,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
     readonly #modTxtOptions: DeepRequired<ModTxtOptions> = {
       path: "mod.txt",
       autoload: {},
+      author: undefined,
       modworkshopID: undefined,
     };
 
@@ -76,6 +77,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         modworkshopID:
           builderArgs.modTxtOptions?.modworkshopID ??
           this.#modTxtOptions.modworkshopID,
+        author: builderArgs.modTxtOptions?.author ?? this.#modTxtOptions.author,
       };
 
       this.#archiverGlobs = builderArgs.globs ?? [];
@@ -154,6 +156,9 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       txtFile += `\nname="${this.GetModName(undefined, false)}"`;
       txtFile += `\nid="${this.ModId}"`;
       txtFile += `\nversion="${this.#packageInfo.version}"`;
+
+      if (this.#modTxtOptions.author)
+        txtFile += `\nauthor="${this.#modTxtOptions.author}"`;
 
       // add in the autoloads section if there are any autoloads specified in the options
       if (Object.keys(this.#modTxtOptions.autoload).length > 0) {
@@ -471,6 +476,11 @@ export interface ModTxtOptions {
    * "It is included in the URL of the mod page, e.g. 49779 for modworkshop.net/mod/49779"
    */
   modworkshopID?: string | undefined;
+
+  /**
+   * Optional author name to include in the mod.txt file.
+   */
+  author?: string | undefined;
 }
 
 export interface ModBuilderArgs {
