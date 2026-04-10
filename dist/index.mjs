@@ -132,7 +132,7 @@ export default async function modBuilder(builderArgs) {
                     // if globs are provided, use those instead of globbing the entire directory
                     for (const glob of this.#archiverGlobs) {
                         const options = glob.options ?? {};
-                        options.cwd = this.#projectRoot;
+                        options.cwd ??= this.#projectRoot;
                         // todo: move this out of the loop
                         options.ignore ??= [];
                         if (typeof options.ignore === "string")
@@ -156,7 +156,14 @@ export default async function modBuilder(builderArgs) {
             });
         }
         async build() {
-            this.#callbacks.onBuildStart?.forEach((callback) => callback());
+            for (const callback of this.#options.callbacks.onBuildStart ?? []) {
+                try {
+                    callback();
+                }
+                catch (error) {
+                    this.#callbacks.onError?.forEach((cb) => cb(error));
+                }
+            }
             try {
                 const zipPath = this.GetBuildPath("zip");
                 const finalPath = this.GetBuildPath("vmz");
@@ -172,11 +179,25 @@ export default async function modBuilder(builderArgs) {
                 console.log(`Built mod: ${finalPath}`);
             }
             catch (error) {
-                this.#callbacks.onError?.forEach((callback) => callback(error));
+                for (const callback of this.#options.callbacks.onError ?? []) {
+                    try {
+                        callback(error);
+                    }
+                    catch (cbError) {
+                        console.error("Error in onError callback:", cbError);
+                    }
+                }
                 throw error;
             }
             finally {
-                this.#callbacks.onBuildEnd?.forEach((callback) => callback());
+                for (const callback of this.#options.callbacks.onBuildEnd ?? []) {
+                    try {
+                        callback();
+                    }
+                    catch (error) {
+                        console.error("Error in onBuildEnd callback:", error);
+                    }
+                }
             }
         }
     }

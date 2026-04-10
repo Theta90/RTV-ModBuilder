@@ -186,7 +186,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
           for (const glob of this.#archiverGlobs) {
             const options = glob.options ?? {};
 
-            options.cwd = this.#projectRoot;
+            options.cwd ??= this.#projectRoot;
 
             // todo: move this out of the loop
             options.ignore ??= [];
@@ -219,7 +219,13 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
     }
 
     public async build() {
-      this.#callbacks.onBuildStart?.forEach((callback) => callback());
+      for (const callback of this.#options.callbacks.onBuildStart ?? []) {
+        try {
+          callback();
+        } catch (error) {
+          this.#callbacks.onError?.forEach((cb) => cb(error as Error));
+        }
+      }
 
       try {
         const zipPath = this.GetBuildPath("zip");
@@ -237,12 +243,22 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
         console.log(`Built mod: ${finalPath}`);
       } catch (error) {
-        this.#callbacks.onError?.forEach((callback) =>
-          callback(error as Error),
-        );
+        for (const callback of this.#options.callbacks.onError ?? []) {
+          try {
+            callback(error as Error);
+          } catch (cbError) {
+            console.error("Error in onError callback:", cbError);
+          }
+        }
         throw error;
       } finally {
-        this.#callbacks.onBuildEnd?.forEach((callback) => callback());
+        for (const callback of this.#options.callbacks.onBuildEnd ?? []) {
+          try {
+            callback();
+          } catch (error) {
+            console.error("Error in onBuildEnd callback:", error);
+          }
+        }
       }
     }
   }
