@@ -26,9 +26,12 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
     readonly #outDir: string = "";
 
-    readonly #modTxtPath: string = "";
-
     readonly #archiverGlobs: ArchiverGlob[] = [];
+
+    readonly #modTxtOptions: DeepRequired<ModTxtOptions> = {
+      path: "mod.txt",
+      autoloads: {},
+    };
 
     readonly #options: DeepRequired<BuildOptions> = {
       includeVersionInName: true,
@@ -63,8 +66,9 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
       this.#projectRoot = builderArgs.projectRoot;
       this.#outDir = builderArgs.outDir ?? "build";
-      this.#modTxtPath =
-        (builderArgs.modTxtPath ?? "").replace("mod.txt", "") + "mod.txt"; // (yes this is a little lazy)
+      this.#modTxtOptions.path =
+        (builderArgs.modTxtOptions?.path ?? "").replace("mod.txt", "") +
+        "mod.txt"; // (yes this is a little lazy)
 
       this.#archiverGlobs = builderArgs.globs ?? [];
 
@@ -121,23 +125,50 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
     // Replace any placeholders in the mod.txt file with the actual values from package.json,
     //  and write to a temp file that will be included in the zip.
     private async createTempModTxt() {
+      const txtFile = `[mod]
+      name="${this.GetModName(undefined, false)}"
+      id="${this.ModId}"
+      version="${this.#packageInfo.version}"
+      `;
+
+      /* let content = await fs.promises.readFile(
+        this.#modTxtOptions.path,
+        "utf-8",
+      );
+
       const txtFileReplacements = {
         "{MOD_NAME}": this.GetModName(undefined, false), // exclude version
         "{MOD_ID}": this.ModId,
         "{MOD_VERSION}": this.#packageInfo.version,
       } as const;
 
-      let content = await fs.promises.readFile(this.#modTxtPath, "utf-8");
-
       Object.entries(txtFileReplacements).forEach(([placeholder, value]) => {
         content = content.replaceAll(placeholder, value);
-      });
+      }); */
+
+      // add in the autoloads section if there are any autoloads specified in the options
+      if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
+        let autoloadEntries = "\n[autoloads]\n";
+
+        Object.entries(this.#modTxtOptions.autoloads).forEach(
+          ([autoloadName, autoloadPath]) => {
+            let fixedPath = "";
+
+            if (!autoloadPath.startsWith("res://"))
+              fixedPath = "res://" + autoloadPath;
+
+            if (!fixedPath.endsWith(".gd")) fixedPath += ".gd";
+
+            autoloadEntries += `${autoloadName}=\"${fixedPath}\"\n`;
+          },
+        );
+      }
 
       await this.ensureDir(this.#TempPath);
 
       await fs.promises.writeFile(
         path.join(this.#TempPath, "mod.txt"),
-        content,
+        txtFile,
         "utf-8",
       );
     }
@@ -322,6 +353,23 @@ type ArchiverGlob = {
   data?: Parameters<Archiver["glob"]>[2];
 };
 
+export interface ModTxtOptions {
+  /**
+   * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
+   * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
+   */
+  path?: string;
+
+  /**
+   * Optional array of autoload entries to include in the mod.txt file.
+   * Each entry should be an obj with the name of the autoload as the key, and the path to the
+   *  script as the value (relative to the project root) -- i.e. { "MyMod": "relative/path/to/Main" }.
+   * This maps to "MyMod="res://relative/path/to/Main.gd"" in the [autoloads] section of mod.txt.
+   * The ".gd" extension will be added automatically if not included in the path.
+   */
+  autoloads?: Record<string, string>;
+}
+
 export interface ModBuilderArgs {
   /**
    * The mod package information, can be specified here to override the values from package.json.
@@ -342,16 +390,16 @@ export interface ModBuilderArgs {
   outDir?: string;
 
   /**
-   * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
-   * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
-   */
-  modTxtPath?: string;
-
-  /**
    * Optional array of glob patterns to specify which files to include in the zip.
    * If not provided, all files in the project root will be included (except those ignored by default).
    */
   globs?: ArchiverGlob[];
+
+  /**
+   * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
+   * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
+   */
+  modTxtOptions?: ModTxtOptions;
 
   /**
    * Additional build options. See {@linkcode BuildOptions}.

@@ -19,8 +19,11 @@ export default async function modBuilder(builderArgs) {
         #callbacks = {};
         #projectRoot = "";
         #outDir = "";
-        #modTxtPath = "";
         #archiverGlobs = [];
+        #modTxtOptions = {
+            path: "mod.txt",
+            autoloads: {},
+        };
         #options = {
             includeVersionInName: true,
             callbacks: {
@@ -45,8 +48,9 @@ export default async function modBuilder(builderArgs) {
                 throw new InvalidBuildOptionsError("packageInfo.name cannot be an empty string");
             this.#projectRoot = builderArgs.projectRoot;
             this.#outDir = builderArgs.outDir ?? "build";
-            this.#modTxtPath =
-                (builderArgs.modTxtPath ?? "").replace("mod.txt", "") + "mod.txt"; // (yes this is a little lazy)
+            this.#modTxtOptions.path =
+                (builderArgs.modTxtOptions?.path ?? "").replace("mod.txt", "") +
+                    "mod.txt"; // (yes this is a little lazy)
             this.#archiverGlobs = builderArgs.globs ?? [];
             if (!isValidPath(this.#projectRoot)) {
                 throw new InvalidPathError("projectRoot is not a valid path");
@@ -86,17 +90,39 @@ export default async function modBuilder(builderArgs) {
         // Replace any placeholders in the mod.txt file with the actual values from package.json,
         //  and write to a temp file that will be included in the zip.
         async createTempModTxt() {
+            const txtFile = `[mod]
+      name="${this.GetModName(undefined, false)}"
+      id="${this.ModId}"
+      version="${this.#packageInfo.version}"
+      `;
+            /* let content = await fs.promises.readFile(
+              this.#modTxtOptions.path,
+              "utf-8",
+            );
+      
             const txtFileReplacements = {
-                "{MOD_NAME}": this.GetModName(undefined, false), // exclude version
-                "{MOD_ID}": this.ModId,
-                "{MOD_VERSION}": this.#packageInfo.version,
-            };
-            let content = await fs.promises.readFile(this.#modTxtPath, "utf-8");
+              "{MOD_NAME}": this.GetModName(undefined, false), // exclude version
+              "{MOD_ID}": this.ModId,
+              "{MOD_VERSION}": this.#packageInfo.version,
+            } as const;
+      
             Object.entries(txtFileReplacements).forEach(([placeholder, value]) => {
-                content = content.replaceAll(placeholder, value);
-            });
+              content = content.replaceAll(placeholder, value);
+            }); */
+            // add in the autoloads section if there are any autoloads specified in the options
+            if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
+                let autoloadEntries = "\n[autoloads]\n";
+                Object.entries(this.#modTxtOptions.autoloads).forEach(([autoloadName, autoloadPath]) => {
+                    let fixedPath = "";
+                    if (!autoloadPath.startsWith("res://"))
+                        fixedPath = "res://" + autoloadPath;
+                    if (!fixedPath.endsWith(".gd"))
+                        fixedPath += ".gd";
+                    autoloadEntries += `${autoloadName}=\"${fixedPath}\"\n`;
+                });
+            }
             await this.ensureDir(this.#TempPath);
-            await fs.promises.writeFile(path.join(this.#TempPath, "mod.txt"), content, "utf-8");
+            await fs.promises.writeFile(path.join(this.#TempPath, "mod.txt"), txtFile, "utf-8");
         }
         async zipDirectory() {
             return await new Promise(async (resolve, reject) => {

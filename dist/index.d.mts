@@ -51,6 +51,21 @@ type ArchiverGlob = {
     options?: Parameters<Archiver["glob"]>[1];
     data?: Parameters<Archiver["glob"]>[2];
 };
+export interface ModTxtOptions {
+    /**
+     * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
+     * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
+     */
+    path?: string;
+    /**
+     * Optional array of autoload entries to include in the mod.txt file.
+     * Each entry should be an obj with the name of the autoload as the key, and the path to the
+     *  script as the value (relative to the project root) -- i.e. { "MyMod": "relative/path/to/Main" }.
+     * This maps to "MyMod="res://relative/path/to/Main.gd"" in the [autoloads] section of mod.txt.
+     * The ".gd" extension will be added automatically if not included in the path.
+     */
+    autoloads?: Record<string, string>;
+}
 export interface ModBuilderArgs {
     /**
      * The mod package information, can be specified here to override the values from package.json.
@@ -68,15 +83,15 @@ export interface ModBuilderArgs {
      */
     outDir?: string;
     /**
-     * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
-     * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
-     */
-    modTxtPath?: string;
-    /**
      * Optional array of glob patterns to specify which files to include in the zip.
      * If not provided, all files in the project root will be included (except those ignored by default).
      */
     globs?: ArchiverGlob[];
+    /**
+     * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
+     * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
+     */
+    modTxtOptions?: ModTxtOptions;
     /**
      * Additional build options. See {@linkcode BuildOptions}.
      */
