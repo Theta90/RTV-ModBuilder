@@ -28,7 +28,9 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
     readonly #projectRoot: string = "";
 
-    readonly #outDir: string = "build";
+    readonly #outDir: string = "";
+
+    readonly #modTxtPath: string = "";
 
     readonly #archiverGlobs: Exclude<ModBuilderArgs["globs"], undefined> = [];
 
@@ -60,6 +62,9 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
       this.#projectRoot = builderArgs.projectRoot;
       this.#outDir = builderArgs.outDir ?? "build";
+      this.#modTxtPath =
+        (builderArgs.modTxtPath ?? "").replace("mod.txt", "") + "mod.txt"; // (yes this is a little lazy)
+
       this.#archiverGlobs = builderArgs.globs ?? [];
 
       if (!isValidPath(this.#projectRoot)) {
@@ -117,11 +122,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         "{MOD_VERSION}": this.#packageInfo.version,
       } as const;
 
-      const txtPath =
-        (builderArgs.modTxtPath ?? this.#projectRoot).replace("mod.txt", "") +
-        "mod.txt"; // (yes this is a little lazy)
-
-      let content = await fs.promises.readFile(txtPath, "utf-8");
+      let content = await fs.promises.readFile(this.#modTxtPath, "utf-8");
 
       Object.entries(txtFileReplacements).forEach(([placeholder, value]) => {
         content = content.replaceAll(placeholder, value);
