@@ -60,6 +60,11 @@ export interface ModBuilderArgs {
      */
     outDir?: string;
     /**
+     * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
+     * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
+     */
+    modTxtPath?: string;
+    /**
      * Optional array of glob patterns to specify which files to include in the zip.
      * If not provided, all files in the project root will be included (except those ignored by default).
      */
