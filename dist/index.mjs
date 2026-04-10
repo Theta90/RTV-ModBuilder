@@ -91,7 +91,7 @@ export default async function modBuilder(builderArgs) {
         // Replace any placeholders in the mod.txt file with the actual values from package.json,
         //  and write to a temp file that will be included in the zip.
         async createTempModTxt() {
-            const txtFile = `[mod]
+            let txtFile = `[mod]
       name="${this.GetModName(undefined, false)}"
       id="${this.ModId}"
       version="${this.#packageInfo.version}"
@@ -123,6 +123,7 @@ export default async function modBuilder(builderArgs) {
                         fixedPath += ".gd";
                     autoloadEntries += `${autoloadName}=\"${fixedPath}\"\n`;
                 });
+                txtFile += autoloadEntries;
             }
             await this.ensureDir(this.#TempPath);
             await fs.promises.writeFile(path.join(this.#TempPath, "mod.txt"), txtFile, "utf-8");
