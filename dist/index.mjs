@@ -77,12 +77,12 @@ export default async function modBuilder(builderArgs) {
             };
             if (this.#options.verbose) {
                 console.log("ModBuilder initialized with the following configuration:");
-                console.log("Package Info:", this.#packageInfo);
-                console.log("Project Root:", this.#projectRoot);
-                console.log("Output Directory:", this.#outDir);
-                console.log("Archiver Globs:", this.#archiverGlobs);
-                console.log("mod.txt Options:", this.#modTxtOptions);
-                console.log("Build Options:", this.#options);
+                console.log("-> Package Info:", this.#packageInfo);
+                console.log("-> Project Root:", this.#projectRoot);
+                console.log("-> Output Directory:", this.#outDir);
+                console.log("-> Archiver Globs:", this.#archiverGlobs);
+                console.log("-> mod.txt Options:", this.#modTxtOptions);
+                console.log("-> Build Options:", this.#options);
             }
         }
         GetModName(extension = undefined, includeVersion = this.#options.includeVersionInName) {
@@ -107,14 +107,13 @@ export default async function modBuilder(builderArgs) {
         // Replace any placeholders in the mod.txt file with the actual values from package.json,
         //  and write to a temp file that will be included in the zip.
         async createTempModTxt() {
+            if (this.#options.verbose) {
+                console.log("Initializing mod.txt");
+            }
             let txtFile = "[mod]";
             txtFile += `\nname="${this.GetModName(undefined, false)}"`;
             txtFile += `\nid="${this.ModId}"`;
             txtFile += `\nversion="${this.#packageInfo.version}"`;
-            if (this.#options.verbose) {
-                console.log("Initializing mod.txt with:");
-                console.log(txtFile);
-            }
             // add in the autoloads section if there are any autoloads specified in the options
             if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
                 let autoloadEntries = "\n\n[autoloads]";
@@ -156,6 +155,7 @@ export default async function modBuilder(builderArgs) {
                 const archive = archiver("zip", { zlib: { level: 9 } });
                 if (this.#options.verbose) {
                     console.log(`Creating zip archive: ${zipPath}`);
+                    console.log("Parsing glob patterns and adding files to archive...");
                 }
                 output.on("close", () => resolve(void 0));
                 output.on("error", reject);
@@ -172,7 +172,7 @@ export default async function modBuilder(builderArgs) {
                 ];
                 if (this.#archiverGlobs.length === 0) {
                     if (this.#options.verbose) {
-                        console.log("No custom globs provided, including all files in project root except excluded globs:");
+                        console.log("-> No custom globs provided, including all files in project root except excluded globs:");
                         console.log(excludedGlobs);
                     }
                     archive.glob("**/*", {
@@ -182,7 +182,7 @@ export default async function modBuilder(builderArgs) {
                 }
                 else {
                     if (this.#options.verbose) {
-                        console.log(`Using ${this.#archiverGlobs.length} custom globs:`);
+                        console.log(`-> Using ${this.#archiverGlobs.length} custom globs:`);
                         console.log(this.#archiverGlobs);
                     }
                     // if globs are provided, use those instead of globbing the entire directory
@@ -195,7 +195,7 @@ export default async function modBuilder(builderArgs) {
                             options.ignore = [options.ignore];
                         options.ignore.push(...excludedGlobs); // ignore build output and temp dir
                         if (this.#options.verbose) {
-                            console.log(`Adding glob pattern: ${glob.pattern} with options:`, options);
+                            console.log(`-> Adding glob pattern: ${glob.pattern} with options:`, options);
                         }
                         archive.glob(glob.pattern, options, glob.data);
                     }
@@ -206,7 +206,7 @@ export default async function modBuilder(builderArgs) {
                 await archive.finalize();
                 if (this.#options.verbose) {
                     console.log("Archive finalized, zip file created.");
-                    console.log("Removing temporary directory...");
+                    console.log(`Removing temporary dir: "${this.#TempPath}" ...`);
                 }
                 // remove temp dir
                 await fs.promises
@@ -217,7 +217,7 @@ export default async function modBuilder(builderArgs) {
                     retryDelay: 50,
                 })
                     .catch((err) => {
-                    console.warn(`Failed to delete temp directory: ${this.#TempPath}. Error:`, err);
+                    console.warn(`Failed to delete temp directory: "${this.#TempPath}". Error:`, err);
                 });
             });
         }
@@ -239,8 +239,8 @@ export default async function modBuilder(builderArgs) {
                 const finalPath = this.GetBuildPath("vmz");
                 if (this.#options.verbose) {
                     console.log(`Build paths:`);
-                    console.log(`Zip Path: ${zipPath}`);
-                    console.log(`Final Path: ${finalPath}`);
+                    console.log(`-> Zip Path: ${zipPath}`);
+                    console.log(`-> Final Path: ${finalPath}`);
                 }
                 await this.ensureDir(this.#BuildDir);
                 if (this.#options.verbose) {
