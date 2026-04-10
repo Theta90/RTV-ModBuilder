@@ -11,6 +11,18 @@ It automates the process of generating a `mod.txt` manifest file, and zipping al
 
 ---
 
+## Setup
+
+Install the RTV-ModBuilder as a dev dependency via:
+
+```sh
+
+npm i -D "github:Theta90/RTV-ModBuilder#main"
+
+```
+
+---
+
 ## Usage
 
 See [The example project](https://github.com/Theta90/RTV-ModBuilder-Example).
