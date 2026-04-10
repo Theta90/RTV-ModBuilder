@@ -23,6 +23,7 @@ export default async function modBuilder(builderArgs) {
         #modTxtOptions = {
             path: "mod.txt",
             autoloads: {},
+            modworkshopID: undefined,
         };
         #options = {
             includeVersionInName: true,
@@ -51,6 +52,8 @@ export default async function modBuilder(builderArgs) {
             this.#modTxtOptions = {
                 path: builderArgs.modTxtOptions?.path ?? "mod.txt",
                 autoloads: builderArgs.modTxtOptions?.autoloads ?? this.#modTxtOptions.autoloads,
+                modworkshopID: builderArgs.modTxtOptions?.modworkshopID ??
+                    this.#modTxtOptions.modworkshopID,
             };
             this.#archiverGlobs = builderArgs.globs ?? [];
             if (!isValidPath(this.#projectRoot)) {
@@ -109,6 +112,10 @@ export default async function modBuilder(builderArgs) {
                     autoloadEntries += `\n${autoloadName}=\"${fixedPath}\"`;
                 });
                 txtFile += autoloadEntries;
+            }
+            if (this.#modTxtOptions.modworkshopID) {
+                txtFile += `\n\n[updates]`;
+                txtFile += `\nmodworkshop=${this.#modTxtOptions.modworkshopID}`;
             }
             await this.ensureDir(this.#TempPath);
             await fs.promises.writeFile(path.join(this.#TempPath, "mod.txt"), txtFile, "utf-8");

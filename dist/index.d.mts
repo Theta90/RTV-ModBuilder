@@ -14,8 +14,8 @@ export declare class InvalidPathError extends ModBuildError {
 export interface ModPackageInfo {
     /**
      * The mod's unique identifier.
-     * Should be lowercase, no spaces, and ideally include the author's name or initials to
-     *  avoid conflicts with other mods.
+     * Recommended to only use a-z, - and _ chars, preferabally also prefixing with your name
+     *  or initials to avoid conflicts with other mods.
      */
     id: string;
     /**
@@ -65,6 +65,12 @@ export interface ModTxtOptions {
      * The ".gd" extension will be added automatically if not included in the path.
      */
     autoloads?: Record<string, string>;
+    /**
+     * The ID of the mod on ModWorkshop, used for the [updates] section of mod.txt.
+     * If not provided, no [updates] section will be included in mod.txt.
+     * "It is included in the URL of the mod page, e.g. 49779 for modworkshop.net/mod/49779"
+     */
+    modworkshopID?: string | undefined;
 }
 export interface ModBuilderArgs {
     /**
