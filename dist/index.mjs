@@ -164,7 +164,6 @@ export default async function modBuilder(builderArgs) {
                 archive.pipe(output);
                 archive.file(path.join(this.#TempPath, "mod.txt"), {
                     name: "mod.txt",
-                    prefix: pathPrefix,
                 });
                 const excludedGlobs = [
                     "**/mod.txt",
