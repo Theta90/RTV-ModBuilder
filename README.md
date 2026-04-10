@@ -32,7 +32,6 @@ await modBuilder({
   },
 
   modTxtOptions: {
-    path: "src/mod.txt",
     autoload: { [`${modName}Main`]: "Main.gd" },
   },
 });

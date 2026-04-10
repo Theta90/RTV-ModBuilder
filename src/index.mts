@@ -29,7 +29,6 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
     readonly #archiverGlobs: ArchiverGlob[] = [];
 
     readonly #modTxtOptions: DeepRequired<ModTxtOptions> = {
-      path: "mod.txt",
       autoload: {},
       author: undefined,
       modworkshopID: undefined,
@@ -71,7 +70,6 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       this.#outDir = builderArgs.outDir ?? "build";
 
       this.#modTxtOptions = {
-        path: builderArgs.modTxtOptions?.path ?? "mod.txt",
         autoload:
           builderArgs.modTxtOptions?.autoload ?? this.#modTxtOptions.autoload,
         modworkshopID:
@@ -455,12 +453,6 @@ type ArchiverGlob = {
 };
 
 export interface ModTxtOptions {
-  /**
-   * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
-   * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
-   */
-  path?: string;
-
   /**
    * Optional array of autoload entries to include in the mod.txt file.
    * Each entry should be an obj with the name of the autoload as the key, and the path to the
