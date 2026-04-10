@@ -152,10 +152,10 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
         Object.entries(this.#modTxtOptions.autoloads).forEach(
           ([autoloadName, autoloadPath]) => {
-            let fixedPath = "";
+            let fixedPath = `res://mods/${this.GetModName()}/`;
 
-            if (!autoloadPath.startsWith("res://"))
-              fixedPath = "res://" + autoloadPath;
+            if (!autoloadPath.startsWith(fixedPath)) fixedPath += autoloadPath;
+            else fixedPath = autoloadPath;
 
             if (!fixedPath.endsWith(".gd")) fixedPath += ".gd";
 
