@@ -275,17 +275,15 @@ export default async function modBuilder(builderArgs) {
                 }
                 throw error;
             }
-            finally {
-                if (this.#options.verbose) {
-                    console.log("Calling onBuildEnd callbacks...");
+            if (this.#options.verbose) {
+                console.log("Calling onBuildEnd callbacks...");
+            }
+            for (const callback of this.#options.callbacks.onBuildEnd ?? []) {
+                try {
+                    callback();
                 }
-                for (const callback of this.#options.callbacks.onBuildEnd ?? []) {
-                    try {
-                        callback();
-                    }
-                    catch (error) {
-                        console.error("Error in onBuildEnd callback:", error);
-                    }
+                catch (error) {
+                    console.error("Error in onBuildEnd callback:", error);
                 }
             }
         }
