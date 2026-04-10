@@ -118,7 +118,7 @@ export default async function modBuilder(builderArgs) {
             if (Object.keys(this.#modTxtOptions.autoloads).length > 0) {
                 let autoloadEntries = "\n\n[autoloads]";
                 Object.entries(this.#modTxtOptions.autoloads).forEach(([autoloadName, autoloadPath]) => {
-                    let fixedPath = `res://${this.GetModName(undefined, false)}/`;
+                    let fixedPath = `res://mods/${this.GetModName(undefined, false)}/`;
                     if (!autoloadPath.startsWith(fixedPath))
                         fixedPath += autoloadPath;
                     else
@@ -150,8 +150,8 @@ export default async function modBuilder(builderArgs) {
         }
         async zipDirectory() {
             return await new Promise(async (resolve, reject) => {
-                const zipPath = this.GetBuildPath("zip");
-                const pathPrefix = `${this.GetModName(undefined, false)}/`;
+                const zipPath = this.GetBuildPath("zip", false);
+                const pathPrefix = `mods/${this.GetModName(undefined, false)}/`;
                 const output = fs.createWriteStream(zipPath);
                 const archive = archiver("zip", { zlib: { level: 9 } });
                 if (this.#options.verbose) {
@@ -238,8 +238,8 @@ export default async function modBuilder(builderArgs) {
                 }
             }
             try {
-                const zipPath = this.GetBuildPath("zip");
-                const finalPath = this.GetBuildPath("vmz");
+                const zipPath = this.GetBuildPath("zip", false);
+                const finalPath = this.GetBuildPath("vmz", false);
                 if (this.#options.verbose) {
                     console.log(`Build paths:`);
                     console.log(`-> Zip Path: ${zipPath}`);

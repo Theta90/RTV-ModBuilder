@@ -161,7 +161,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
         Object.entries(this.#modTxtOptions.autoloads).forEach(
           ([autoloadName, autoloadPath]) => {
-            let fixedPath = `res://${this.GetModName(undefined, false)}/`;
+            let fixedPath = `res://mods/${this.GetModName(undefined, false)}/`;
 
             if (!autoloadPath.startsWith(fixedPath)) fixedPath += autoloadPath;
             else fixedPath = autoloadPath;
@@ -207,8 +207,8 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
     private async zipDirectory() {
       return await new Promise(async (resolve, reject) => {
-        const zipPath = this.GetBuildPath("zip");
-        const pathPrefix = `${this.GetModName(undefined, false)}/`;
+        const zipPath = this.GetBuildPath("zip", false);
+        const pathPrefix = `mods/${this.GetModName(undefined, false)}/`;
         const output = fs.createWriteStream(zipPath);
         const archive = archiver("zip", { zlib: { level: 9 } });
 
@@ -325,8 +325,8 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
       }
 
       try {
-        const zipPath = this.GetBuildPath("zip");
-        const finalPath = this.GetBuildPath("vmz");
+        const zipPath = this.GetBuildPath("zip", false);
+        const finalPath = this.GetBuildPath("vmz", false);
 
         if (this.#options.verbose) {
           console.log(`Build paths:`);
