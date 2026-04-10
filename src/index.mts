@@ -161,7 +161,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
         Object.entries(this.#modTxtOptions.autoloads).forEach(
           ([autoloadName, autoloadPath]) => {
-            let fixedPath = `res://`;
+            let fixedPath = `res://mods/${this.GetModName()}/`;
 
             if (!autoloadPath.startsWith(fixedPath)) fixedPath += autoloadPath;
             else fixedPath = autoloadPath;
@@ -208,6 +208,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
     private async zipDirectory() {
       return await new Promise(async (resolve, reject) => {
         const zipPath = this.GetBuildPath("zip");
+        const pathPrefix = `mods/${this.GetModName()}/`;
         const output = fs.createWriteStream(zipPath);
         const archive = archiver("zip", { zlib: { level: 9 } });
 
@@ -225,7 +226,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
         archive.file(path.join(this.#TempPath, "mod.txt"), {
           name: "mod.txt",
-          prefix: "",
+          prefix: pathPrefix,
         });
 
         const excludedGlobs = [
@@ -248,7 +249,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
               cwd: this.#projectRoot,
               ignore: excludedGlobs, // ignore build output and temp dir
             },
-            //{ prefix: "src" },
+            { prefix: pathPrefix },
           );
         } else {
           if (this.#options.verbose) {
@@ -275,7 +276,10 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
               );
             }
 
-            archive.glob(glob.pattern, options, glob.data);
+            archive.glob(glob.pattern, options, {
+              ...glob.data,
+              prefix: pathPrefix + (glob.data?.prefix ?? ""), // ensure the prefix is always added
+            });
           }
         }
 
