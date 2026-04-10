@@ -4,15 +4,9 @@ import archiver, {} from "archiver";
 import isValidPath from "is-valid-path";
 //#region ModBuilder
 /**
- * Builds a mod by zipping the contents of the source directory, replacing placeholders in mod.txt with values from packageInfo,
- *  and outputting the final .vmz file to the build directory.
- *
- * The mod.txt file is required in the source directory, and should contain placeholders for {MOD_NAME}, {MOD_ID}, and {MOD_VERSION}.
- * If BuildOptions.includeFiles is provided, those files will be included in the zip at the root level (not inside the "src" folder).
- *
- * See the ./example folder for more info.
- * @param buildOptions
- * @returns
+ * Builds a mod package for the game, including creating a mod.txt file with values from package.json, and zipping the contents into a .vmz file.
+ * @param builderArgs The arguments for the mod builder, including package info, project root, output directory, and build options.
+ * @returns A promise that resolves when the build is complete.
  */
 export default async function modBuilder(builderArgs) {
     class ModBuilder {
