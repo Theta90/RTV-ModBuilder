@@ -1,11 +1,5 @@
 # RTV ModBuilder
 
-A tool for quickly packaging Road to Vostok mods.
-
----
-
-## Overview
-
 A Node.js-based "mod zipper" for quickly packaging Road to Vostok mods.
 It automates the process of generating a `mod.txt` manifest file, and zipping all mod contents into a `.vmz` file.
 
