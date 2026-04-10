@@ -83,3 +83,18 @@ await modBuilder({
 ## Requirements
 
 - [Node.js](https://nodejs.org/) v18+
+
+## Misc
+
+It can be annoying to move the zip from the output dir to the mods folder, but you can use symlinks
+to direct the mods folder directly to the mod itself. This link is a direct pointer towards the link target.
+I've written how to do it in Windows below, but there is certainly a way to do it on Linux/MacOS too I'm sure.
+
+```sh
+mklink "C:\SteamLibrary\steamapps\common\Road to Vostok\mods\MyMod.vmz" "C\path\to\MyMod.vmz"
+```
+
+This command needs to be run in CMD, but it's doable in Powershell too (using a different method).
+See [MSDocs](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink)
+for a detailed explanation on mklink.
+
