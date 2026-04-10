@@ -18,7 +18,7 @@ npm i -D "github:Theta90/RTV-ModBuilder#main"
 See [The example project](https://github.com/Theta90/RTV-ModBuilder-Example).
 Most of the detailing is there... it'll be here eventually too :)
 
-In your mod project, create an entry file (e.g. `index.js`) and call the `modBuilder` 
+In your mod project, create an entry file (e.g. `index.js`) and call the `modBuilder`
 function imported from this tool.
 The index.js file must be tailored to each specific project. The following options should
 be adjusted per project:
@@ -30,7 +30,6 @@ be adjusted per project:
 
 - **`outDir`** — The directory where the built mod will be output (e.g., `"build"`).
   If the projectRoot is in a subdirectory, this will output in a subdir of that.
-  
 - **`packageInfo`** — Suggested to use the values from `package.json`:
   - `id` — The package `name` field, used as the mod's unique identifier.
   - `name` — The package `displayName` field, used as the human-readable mod name.
@@ -44,16 +43,19 @@ be adjusted per project:
 - **`modTxtOptions`** — Configuration for generating the mod's `mod.txt` file:
   - `autoload` — A map of autoload names to their corresponding script paths.
   - `author` — A custom field that can be populated if desired (probably want to!)
+  - `modworkshopID` — An optional numeric ID for the mod, used for RTV's mod workshop.
+  - `priority` — Determines the load order of mods.
 
 - **`options`** — Additional builder options:
   - `includeVersionInName` — Whether to append the version number to the output
-  mod's name.
+    mod's name.
   - `verbose` — Whether to enable verbose logging during the build.
 
-## Example
+## Minimal Example
 
 ```js
 import { modBuilder } from "rtv-modbuilder";
+import packageInfoJson from "./package.json" assert { type: "json" };
 
 await modBuilder({
   projectRoot: "",
@@ -61,7 +63,7 @@ await modBuilder({
 
   packageInfo: {
     id: packageInfoJson.name,
-    name: modName,
+    name: packageInfoJson.displayName,
     version: packageInfoJson.version,
   },
 
