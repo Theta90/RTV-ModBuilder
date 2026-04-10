@@ -18,7 +18,9 @@
   "devDependencies": {
     "@types/archiver": "^7.0.0",
     "@types/is-valid-path": "^0.1.2",
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.5.2"
+  },
+  "dependencies": {
     "archiver": "^7.0.1",
     "is-valid-path": "^0.1.1"
   },
