@@ -156,7 +156,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         });
 
         const excludedGlobs = [
-          "mod.txt",
+          "**/mod.txt",
           `${this.#outDir}/**`,
           `${this.#TEMP_SUB_DIR}/**`,
         ];
