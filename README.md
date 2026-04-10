@@ -2,6 +2,8 @@
 
 A Node.js-based "mod zipper" for quickly packaging Road to Vostok mods.
 It automates the process of generating a `mod.txt` manifest file, and zipping all mod contents into a `.vmz` file.
+This is a very early version, and I am new to public package development, so expect some rough edges and missing features.
+If you have any suggestions or want to contribute, please open an issue or a pull request!
 
 ## Setup
 
@@ -49,6 +51,10 @@ be adjusted per project:
 - **`options`** — Additional builder options:
   - `includeVersionInName` — Whether to append the version number to the output
     mod's name.
+  - `callbacks` — An object of callback functions[] that can be used to hook into the build process.
+    - `onBuildStart` — Each of these are called when the build starts.
+    - `onBuildEnd` — Each of these are called when the build finishes successfully.
+    - `onBuildError` — Each of these are called if an error occurs during the build.
   - `verbose` — Whether to enable verbose logging during the build.
 
 ## Minimal Example
