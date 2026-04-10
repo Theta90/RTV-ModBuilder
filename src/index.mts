@@ -148,7 +148,7 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
         archive.pipe(output);
 
-        archive.file(`${this.#TempPath}/mod.txt`, {
+        archive.file(path.join(this.#TempPath, "mod.txt"), {
           name: "mod.txt",
           prefix: "",
         });

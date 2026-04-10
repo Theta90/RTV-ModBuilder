@@ -100,7 +100,7 @@ export default async function modBuilder(builderArgs) {
                 output.on("error", reject);
                 archive.on("error", reject);
                 archive.pipe(output);
-                archive.file(`${this.#TempPath}/mod.txt`, {
+                archive.file(path.join(this.#TempPath, "mod.txt"), {
                     name: "mod.txt",
                     prefix: "",
                 });
@@ -145,7 +145,7 @@ export default async function modBuilder(builderArgs) {
         async build() {
             const zipPath = this.GetBuildPath("zip");
             const finalPath = this.GetBuildPath("vmz");
-            await this.ensureDir(this.#outDir);
+            await this.ensureDir(this.#BuildDir);
             // remove old zip and final files if they exist
             if (fs.existsSync(zipPath))
                 await fs.promises.unlink(zipPath);
