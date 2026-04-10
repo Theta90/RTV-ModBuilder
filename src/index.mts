@@ -117,10 +117,11 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
         "{MOD_VERSION}": this.#packageInfo.version,
       } as const;
 
-      let content = await fs.promises.readFile(
-        path.join(this.#projectRoot, "mod.txt"),
-        "utf-8",
-      );
+      const txtPath =
+        (builderArgs.modTxtPath ?? this.#projectRoot).replace("mod.txt", "") +
+        "mod.txt"; // (yes this is a little lazy)
+
+      let content = await fs.promises.readFile(txtPath, "utf-8");
 
       Object.entries(txtFileReplacements).forEach(([placeholder, value]) => {
         content = content.replaceAll(placeholder, value);
@@ -288,6 +289,12 @@ export interface ModBuilderArgs {
    * Will create this directory if it doesn't exist.
    */
   outDir?: string;
+
+  /**
+   * Optional path to a mod.txt file to use as a template. If not provided, the builder will look for mod.txt in the project root.
+   * This file must contain the placeholders {MOD_NAME}, {MOD_ID}, and {MOD_VERSION} for the builder to replace with values from packageInfo.
+   */
+  modTxtPath?: string;
 
   /**
    * Optional array of glob patterns to specify which files to include in the zip.
