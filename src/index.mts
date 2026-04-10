@@ -66,9 +66,12 @@ export default async function modBuilder(builderArgs: ModBuilderArgs) {
 
       this.#projectRoot = builderArgs.projectRoot;
       this.#outDir = builderArgs.outDir ?? "build";
-      this.#modTxtOptions.path =
-        (builderArgs.modTxtOptions?.path ?? "").replace("mod.txt", "") +
-        "mod.txt"; // (yes this is a little lazy)
+
+      this.#modTxtOptions = {
+        path: builderArgs.modTxtOptions?.path ?? "mod.txt",
+        autoloads:
+          builderArgs.modTxtOptions?.autoloads ?? this.#modTxtOptions.autoloads,
+      };
 
       this.#archiverGlobs = builderArgs.globs ?? [];
 
