@@ -129,8 +129,11 @@ export default async function modBuilder(builderArgs) {
                         fixedPath += autoloadPath;
                     else
                         fixedPath = autoloadPath;
-                    if (!fixedPath.endsWith(".gd"))
-                        fixedPath += ".gd";
+                    if (!fixedPath.endsWith(".gd")) {
+                        const hasExtension = path.extname(fixedPath) !== "";
+                        if (!hasExtension)
+                            fixedPath += ".gd";
+                    }
                     autoloadEntries += `\n${autoloadName}=\"${fixedPath}\"`;
                 });
                 if (this.#options.verbose) {
